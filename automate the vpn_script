@@ -1,0 +1,105 @@
+#!/bin/bash
+
+# Function to display usage information
+function display_usage {
+    echo "Usage: $0 -w <WARP_TOKEN> -o <OPENVPN_CONFIG>"
+    echo "Options:"
+    echo "  -w, --warp-token      Warp token for connecting to Cloudflare WARP"
+    echo "  -o, --openvpn-config  OpenVPN configuration file for TryHackMe"
+    exit 1
+}
+
+# Initialize variables
+WARP_TOKEN=""
+OPENVPN_CONFIG=""
+
+# Process command line arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -w|--warp-token)
+            WARP_TOKEN="$2"
+            shift 2
+            ;;
+        -o|--openvpn-config)
+            OPENVPN_CONFIG="$2"
+            shift 2
+            ;;
+        *)
+            display_usage
+            ;;
+    esac
+done
+
+# Check if required arguments are provided
+if [ -z "$WARP_TOKEN" ] || [ -z "$OPENVPN_CONFIG" ]; then
+    display_usage
+fi
+
+# Function to connect to WARP
+function connect_to_warp {
+    echo "Connecting to WARP..."
+    warp-cli connect "$WARP_TOKEN"
+    sleep 5
+}
+
+# Function to check for WARP IP assignment
+function check_warp_ip {
+    warp_ip=$(curl -s https://ipinfo.io/ip)
+    if [ -n "$warp_ip" ]; then
+        echo "WARP connected. Assigned IP: $warp_ip"
+    else
+        echo "Error: WARP connection failed."
+        exit 1
+ fi
+}
+
+# Function to connect to OpenVPN
+function connect_to_openvpn {
+    echo "Connecting to OpenVPN..."
+    openvpn --config "$OPENVPN_CONFIG" &
+    sleep 10
+}
+
+# Function to check OpenVPN connection
+function check_openvpn_ip {
+    openvpn_ip=$(curl -s https://ipinfo.io/ip)
+    if [ -n "$openvpn_ip" ]; then
+        echo "OpenVPN connected. Assigned IP: $openvpn_ip"
+    else
+        echo "Error: OpenVPN connection failed."
+        exit 1
+    fi
+}
+ 
+# Function to perform additional checks
+function additional_checks {
+    echo "Performing additional checks..."
+    ping -c 3 10.10.10.10
+}
+ 
+# Function to disconnect from WARP
+function disconnect_from_warp {
+    echo "Disconnecting from WARP..."
+    warp-cli disconnect
+}
+ 
+# Main script
+
+# Connect to WARP
+connect_to_warp
+# Check for WARP IP assignment
+check_warp_ip
+
+# Connect to OpenVPN
+connect_to_openvpn
+
+# Check OpenVPN connection
+check_openvpn_ip
+
+# Perform additional checks
+additional_checks
+
+# Disconnect from WARP
+disconnect_from_warp
+
+echo "VPN connection script completed."
