@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Backup source directory
+source_directory="/home"
+
+# Backup destination directory
+backup_directory="/home/mohammed"
+
+# Create timestamp for backup
+timestamp=$(date +"%Y%m%d_%H%M%S")
+
+# Name of the backup archive
+backup_filename="home_backup_$timestamp.tar.gz"
+
+# Full path to the backup archive
+backup_filepath="$backup_directory/$backup_filename"
+
+# Create backup
+echo "Creating backup of $source_directory..."
+tar -czf "$backup_filepath" "$source_directory"
+
+# Check if the backup was successful
+if [ $? -eq 0 ]; then
+    echo "Backup successfully created: $backup_filepath"
+else
+    echo "Error: Backup creation failed."
+    exit 1
+fi
